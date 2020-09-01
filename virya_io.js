@@ -1,3 +1,12 @@
+//
+// Copyright (c) 2019-2020 Vic Zhang(VicBig at qq dot com)
+//
+// Distributed under the GNU General Public License, Version 3.(Please see
+// more information at https://www.gnu.org/licenses/)
+//
+// Official repository: https://github.com/bigvzhang/viryajs
+//
+
 /* global window, exports, define */
 !function(){ // wrap function
 
@@ -207,9 +216,6 @@ function sprintf_parse(fmt) {
 }
 
 
-
-
-
 function print(format, content){
 	console.log(vsprintf(format, content));
 }
@@ -297,7 +303,7 @@ if (typeof exports !== 'undefined') {
 	exports.DRAW_LINE = DRAW_LINE;
 	exports.EXPLAIN   = EXPLAIN;
 }
-/* verify
+/* uncomment the following if you want to use them in document
 if (typeof window !== 'undefined') {
 	window.sprintf  = sprintf
 	window.vsprintf = vsprintf
