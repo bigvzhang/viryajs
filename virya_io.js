@@ -224,13 +224,26 @@ function printf(format, content){
 	process.stdout.write(vsprintf(format, content));
 }
 
-function DRAW_LINE(c = '=', l = 60) {
+function DRAW_LINE(c = '=', l = 80) {
 	console.log(c.repeat(l));
+}
+
+function TITLE(s, c = '=', l = 80){
+	if(typeof s != 'string'){
+		s = toString()		
+	}
+	if(s.length + 6 >= l){
+		console.log("====", s)
+	}else{
+		print("==== %s %s", [s, c.repeat(l-s.length-6)])
+	}
 }
 
 function EXPLAIN(s){
 	console.log("// " + s);
 }
+
+
 
 function type(obj){
     return Object.prototype.toString.call(obj).slice(8, -1);
@@ -271,7 +284,7 @@ function print_obj(obj, name_width=20){ // print content of an object
 	);
 }
 
-function print_obj_prop(obj, name_width=20){ // print object's property names and their type
+function print_obj_own_prop(obj, name_width=20){ // print object's property names and their type
 	if(type(obj) == "Undefined"){
 		print("The object is undefined!");
 		return;
@@ -287,6 +300,36 @@ function print_obj_prop(obj, name_width=20){ // print object's property names an
 	);
 }
 
+function print_obj_prop(obj,title=null, name_width=20){ // print object's property names and their type
+	if(type(obj) == "Undefined"){
+		print("The object is undefined!");
+		return;
+	}
+	if(obj == null){
+		print("The object is null!");
+		return;
+	}
+	if(title==null){
+		for(let name in obj){
+			try{
+			    print("Name:%-"+name_width+"s Type:%s",[name, type(obj[name])]);
+			}catch(e){
+				print("Name:%-"+name_width+"s    !:%s",[name, e.name]);
+			}
+		}
+	}else{
+		console.log(title)
+		for(let name in obj){
+			try{
+				print("    Name:%-"+name_width+"s Type:%s",[name, type(obj[name])]);
+			}catch(e){
+				print("    Name:%-"+name_width+"s    !:%s",[name, e.name]);
+			}
+		}
+	}
+}
+
+
 
 /**
  * export to either browser or node.js
@@ -299,8 +342,10 @@ if (typeof exports !== 'undefined') {
 	exports.printf    = printf;
 	exports.print_obj = print_obj;
 	exports.print_obj_prop = print_obj_prop;
+	exports.print_obj_own_prop = print_obj_own_prop;
 	exports.print_obj_type = print_obj_type;
 	exports.DRAW_LINE = DRAW_LINE;
+	exports.TITLE     = TITLE;
 	exports.EXPLAIN   = EXPLAIN;
 }
 /* uncomment the following if you want to use them in document
