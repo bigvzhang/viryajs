@@ -216,31 +216,65 @@ function sprintf_parse(fmt) {
 }
 
 
-function print(format, content){
+function vprint(format, content){
 	console.log(vsprintf(format, content));
 }
 
-function printf(format, content){
+function vprintf(format, content){
 	process.stdout.write(vsprintf(format, content));
 }
+function sprintf(key) {
+	// `arguments` is not an array, but should be fine for this call
+	return sprintf_format(sprintf_parse(key), arguments)
+}
 
-function DRAW_LINE(c = '=', l = 80) {
+function print(key) {
+	return console.log(sprintf_format(sprintf_parse(key), arguments));
+}
+
+function printf(key) {
+	return process.stdout.write(sprintf_format(sprintf_parse(key), arguments));
+}
+
+var LINEWIDTH=80
+function SET_LINEWIDTH(x){
+	LINEWIDTH=x
+}
+
+function DRAW_LINE(c = '=', l = LINEWIDTH) {
+	console.log(c.repeat(l));
+}
+function HORIZONTAL(c = '=', l = LINEWIDTH) {
 	console.log(c.repeat(l));
 }
 
-function TITLE(s, c = '=', l = 80){
+function TITLE(s, c = '=', l = LINEWIDTH){
 	if(typeof s != 'string'){
 		s = toString()		
 	}
 	if(s.length + 6 >= l){
-		console.log("====", s)
+		console.log(c.repeat(4), s)
 	}else{
-		print("==== %s %s", [s, c.repeat(l-s.length-6)])
+		vprint("%s %s %s", [c.repeat(4), s, c.repeat(l-s.length-6)])
 	}
 }
 
+function HEAD(s, c = '~', l = LINEWIDTH){
+	TITLE(s,c,l)	
+}
+function HEAD2(s, c = '-', l = LINEWIDTH){
+	TITLE(s,c,l-4)	
+}
+function HEAD3(s, c = '.', l = LINEWIDTH){
+	TITLE(s,c,l-8)	
+}
+
 function EXPLAIN(s){
-	console.log("// " + s);
+	console.log("//", s);
+}
+
+function REFERENCE(s){
+	print("-- [REFERENCE](%s)", s);
 }
 
 
@@ -249,84 +283,134 @@ function type(obj){
     return Object.prototype.toString.call(obj).slice(8, -1);
 }
 
-function print_obj_type(s,obj){ 
-	console.log(s+type(obj));
+function print_obj_type(obj, title=null){ 
+	if(title==null)
+		console.log(type(obj))
+	else
+		console.log(title, type(obj))
 }
 
-function print_obj(obj, name_width=20){ // print content of an object
+function print_obj(obj, title="The object", name_width=20){ // vprint content of an object
 	if(type(obj) == "Undefined"){
-		print("The object is undefined!");
+		vprint(title +" is undefined!");
 		return;
 	}
 	if(obj == null){
-		print("The object is null!");
+		vprint(title + " is null!");
 		return;
 	}
-	let names = Object.getOwnPropertyNames(obj);
-	if(names.length == 0){
-		print("The object:" + obj);
-		return ;
+	if(!(typeof(obj) == "object" || typeof(obj) == "function")){// primitive
+		vprint(title+":" + obj);
+		return
 	}
-	// the object has properties
-	print("The object has %d properties:", [names.length]);
-	names.forEach(
-		function(name,idx,array){
-			var type_ = type(obj[name]);
-			switch(type_){
-			case "String": print(" Prop:%-"+name_width+"s Value:\"%s\"",[name, obj[name] != null ?  obj[name] : "null"]);  break
-			case "Boolean": 
-			case "Number": print(" Prop:%-"+name_width+"s Value:%s",[name, obj[name] != null ?  obj[name] : "null"]);
-				break;
-			default:	
-				print(" Prop:%-"+name_width+"s Type :%s",[name, type(obj[name])]);
-			}
+	if(!(title == "The object" || title == null)){
+		console.log(title)
+	}
+	for(let name in obj){
+		let type_ = type(obj[name]);
+		switch(type_){
+		case "String": vprint(" Prop:%-"+name_width+"s Value:\"%s\"",[name, obj[name] != null ?  obj[name] : "null"]);  break
+		case "Boolean": 
+		case "Number": vprint(" Prop:%-"+name_width+"s Value:%s",[name, obj[name] != null ?  obj[name] : "null"]);
+			break;
+		default:	
+			vprint(" Prop:%-"+name_width+"s Type :%s",[name, type(obj[name])]);
 		}
-	);
+	}
 }
 
-function print_obj_own_prop(obj, name_width=20){ // print object's property names and their type
+function print_obj_own_prop(obj, name_width=20){ // vprint object's property names and their type
 	if(type(obj) == "Undefined"){
-		print("The object is undefined!");
+		vprint("The object is undefined!");
 		return;
 	}
 	if(obj == null){
-		print("The object is null!");
+		vprint("The object is null!");
 		return;
 	}
 	Object.getOwnPropertyNames(obj).forEach(
 		function(name,idx,array){
-			print("Name:%-"+name_width+"s Type:%s",[name, type(obj[name])]);
+			vprint("Name:%-"+name_width+"s Type:%s",[name, type(obj[name])]);
 		}
 	);
 }
 
-function print_obj_prop(obj,title=null, name_width=20){ // print object's property names and their type
+function print_obj_prop(obj,title=null, name_width=20){ // vprint object's property names and their type
 	if(type(obj) == "Undefined"){
-		print("The object is undefined!");
+		vprint("The object is undefined!");
 		return;
 	}
 	if(obj == null){
-		print("The object is null!");
+		vprint("The object is null!");
 		return;
 	}
 	if(title==null){
-		for(let name in obj){
-			try{
-			    print("Name:%-"+name_width+"s Type:%s",[name, type(obj[name])]);
-			}catch(e){
-				print("Name:%-"+name_width+"s    !:%s",[name, e.name]);
+		if(typeof(obj) == "object" || typeof(obj) == "function"){
+			for(let name in obj){
+				try{
+					vprint("Name:%-"+name_width+"s Type:%s",[name, type(obj[name])]);
+				}catch(e){
+					vprint("Name:%-"+name_width+"s    !:%s",[name, e.name]);
+				}
 			}
+		}else{
+			console.log("type is not object or function")
 		}
 	}else{
-		console.log(title)
-		for(let name in obj){
-			try{
-				print("    Name:%-"+name_width+"s Type:%s",[name, type(obj[name])]);
-			}catch(e){
-				print("    Name:%-"+name_width+"s    !:%s",[name, e.name]);
+		if(typeof(obj) == "object" || typeof(obj) == "function"){
+			console.log(title)
+			for(let name in obj){
+				try{
+					vprint("    Name:%-"+name_width+"s Type:%s",[name, type(obj[name])]);
+				}catch(e){
+					vprint("    Name:%-"+name_width+"s    !:%s",[name, e.name]);
+				}
 			}
+		}else{
+			console.log(title, "type is not object or function")
 		}
 	}
+}
+
+function get_func_pnames(fun) { // get function's parameter names; https://2ality.com/2011/01/reflection-and-meta-programming-in.html
+	var names = fun.toString().match(/^[\s\(]*function[^(]*\(([^)]*)\)/)[1]
+		.replace(/\/\/.*?[\r\n]|\/\*(?:.|[\r\n])*?\*\//g, '')
+		.replace(/\s+/g, '').split(',');
+	return names.length == 1 && !names[0] ? [] : names;
+}
+
+function toYYYYMMDD(d, compact=true){ // date to yyyymmdd
+	if(compact)
+		return sprintf("%04d%02d%02d", d.getFullYear(), d.getMonth()+1, d.getDate());
+	else
+		return sprintf("%04d-%02d-%02d", d.getFullYear(), d.getMonth()+1, d.getDate());
+}
+
+function toYYYYMMDDHHMISS(d, compact=true){
+	if(compact)
+		return sprintf("%04d%02d%02d%02d%02d%02d", d.getFullYear(), d.getMonth()+1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds());
+	else
+		return sprintf("%04d-%02d-%02d %02d:%02d:%02d", d.getFullYear(), d.getMonth()+1, d.getDate(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds());
+}
+
+function addSeconds(d, seconds){ return new Date(d.getTime() + seconds*1000); }
+function addMilliseconds(d, milliseconds){ return new Date(d.getTime() + milliSeconds); }
+
+async function cleanDirectory(directory){
+	const fs = require('fs').promises;
+	const path = require('path');
+	let files = [];
+	try{
+		files = await fs.readdir(directory);
+	} catch(e){
+		throw e;
+	}
+
+	if(!files.length){
+		return;
+	}
+	const promises = files.map(e => fs.unlink(path.join(directory, e)));
+	await Promise.all(promises)
 }
 
 
@@ -336,24 +420,45 @@ function print_obj_prop(obj,title=null, name_width=20){ // print object's proper
  */
 /* eslint-disable quote-props */
 if (typeof exports !== 'undefined') {
+	exports.type     = type
 	exports.sprintf  = sprintf
-	exports.vsprintf = vsprintf
 	exports.print    = print;
-	exports.printf    = printf;
+	exports.printf   = printf;
+	exports.vsprintf = vsprintf
+	exports.vprint   = vprint;
+	exports.vprintf  = vprintf;
+	exports.sprintf_format = sprintf_format;
+	exports.sprintf_parse = sprintf_parse;
 	exports.print_obj = print_obj;
 	exports.print_obj_prop = print_obj_prop;
 	exports.print_obj_own_prop = print_obj_own_prop;
 	exports.print_obj_type = print_obj_type;
+
+	exports.get_func_pnames = get_func_pnames;
+
+	exports.toYYYYMMDD  =  toYYYYMMDD;
+	exports.toYYYYMMDDHHMISS  =  toYYYYMMDDHHMISS;
+	exports.addSeconds       =  addSeconds;
+	exports.addMilliseconds  =  addMilliseconds;
+
+	exports.cleanDirectory = cleanDirectory;
+
 	exports.DRAW_LINE = DRAW_LINE;
-	exports.TITLE     = TITLE;
 	exports.EXPLAIN   = EXPLAIN;
+	exports.HEAD     = HEAD;
+	exports.HEAD2    = HEAD2;
+	exports.HEAD3    = HEAD3;
+	exports.HORIZONTAL = HORIZONTAL;
+	exports.REFERENCE   = REFERENCE;
+	exports.TITLE     = TITLE;
+	exports.SET_LINEWIDTH     = SET_LINEWIDTH;
 }
 /* uncomment the following if you want to use them in document
 if (typeof window !== 'undefined') {
 	window.sprintf  = sprintf
 	window.vsprintf = vsprintf
-	window.print    = print;
-	window.printf    = printf;
+	window.vprint    = vprint;
+	window.vprintf    = vprintf;
 	window.print_obj = print_obj;
 	window.print_obj_prop = print_obj_prop;
 	window.print_obj_type = print_obj_type;
@@ -364,8 +469,8 @@ if (typeof window !== 'undefined') {
 			return {
 				sprintf  : sprintf,
 				vsprintf : vsprintf,
-				print    : print,
-				printf    : printf,
+				vprint    : vprint,
+				vprintf    : vprintf,
 				print_obj : print_obj,
 				print_obj_prop : print_obj_prop,
 				print_obj_type : print_obj_type,
